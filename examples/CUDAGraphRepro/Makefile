@@ -13,11 +13,13 @@ CXXFLAGS_DBG   := -g -O0 -DTRACY_ENABLE
 NVCCFLAGS_REL  := -arch=native -O2 -DTRACY_ENABLE
 NVCCFLAGS_DBG  := -arch=native -g -O0 -DTRACY_ENABLE
 
-.PHONY: all debug clean
+.PHONY: all debug investigate clean
 
 all: repro
 
 debug: repro_debug
+
+investigate: test_corr_reuse
 
 # Release build
 repro: repro.cu tracy_client.o
@@ -33,5 +35,9 @@ repro_debug: repro.cu tracy_client_debug.o
 tracy_client_debug.o: $(TRACY_SRCS)
 	$(CXX) $(CXXFLAGS_DBG) $(INCLUDES) -c -o $@ $<
 
+# Investigation: correlationId uniqueness per graph launch (no Tracy dependency)
+test_corr_reuse: test_corr_reuse.cu
+	$(NVCC) $(NVCCFLAGS_REL) $(INCLUDES) -o $@ $< $(LIBS)
+
 clean:
-	rm -f repro repro_debug tracy_client.o tracy_client_debug.o
+	rm -f repro repro_debug test_corr_reuse tracy_client.o tracy_client_debug.o
